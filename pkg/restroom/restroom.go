@@ -1,10 +1,6 @@
 package restroom
 
-import (
-	"sync"
-
-	"github.com/rs/zerolog"
-)
+import "sync"
 
 type ticket struct {
 	previous *ticket
@@ -81,15 +77,12 @@ func NewRoomLock() *RoomLock {
 }
 
 // Lock locks the RoomLock
-func (lock *RoomLock) Lock(logger *zerolog.Logger, coroutineName string) {
-	logger.Info().Msgf("DEBUGGING: routine with id=%v locks the room", coroutineName)
+func (lock *RoomLock) Lock() {
 	lock.set(true)
 }
 
 // Unlock unlocks the RoomLock
-func (lock *RoomLock) Unlock(logger *zerolog.Logger, coroutineName string) {
-	logger.Info().Msgf("DEBUGGING: routine with id=%v unlocks the room", coroutineName)
-
+func (lock *RoomLock) Unlock() {
 	lock.queue.popFront() // trow your ticket in the bin
 	lock.set(false)       // unlock the door
 }
@@ -97,17 +90,13 @@ func (lock *RoomLock) Unlock(logger *zerolog.Logger, coroutineName string) {
 // WaitIfLocked halts the program execution if the RoomLock is locked and does nothing if not
 // it implements the ticket system to grant access to go-routines in the same order in which
 // they called this method
-func (lock *RoomLock) WaitIfLocked(logger *zerolog.Logger, coroutineName string) {
+func (lock *RoomLock) WaitIfLocked() {
 	lock.mutex.Lock()
 	ticket := lock.queue.getNewTicket()
-	logger.Info().Msgf("DEBUGGING: routine with id=%v got a ticket for the waiting queue", coroutineName)
 
 	for lock.value || lock.queue.activeTicket() != ticket {
-		logger.Info().Msgf("DEBUGGING: routine with id=%v is now waiting", coroutineName)
 		lock.cond.Wait() // Wait temporarily releases the mutex until cond.Broadcast or cond.Signal
 	}
-
-	logger.Info().Msgf("DEBUGGING: routine with id=%v has left the waiting queue", coroutineName)
 
 	lock.mutex.Unlock()
 }
