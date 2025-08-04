@@ -2,6 +2,7 @@ package restroom_test
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -12,42 +13,102 @@ import (
 
 var _ = Describe("Restroom", func() {
 	var roomLock *restroom.RoomLock
-	var start, end []int
-	var goRoutine func(int)
+	var control []string
+	var controlExp []string
+	var goRoutineImplicit func(int)
+	var goRoutineExplicit func(int)
 
 	BeforeEach(func() {
 		roomLock = restroom.NewRoomLock()
-		start, end = []int{}, []int{}
-		goRoutine = func(number int) {
-			fmt.Printf("routine %v (goRoutine) entered\n", number)
-			roomLock.WaitIfLocked(number)
-			fmt.Printf("routine %v (goRoutine) is done waiting\n", number)
-			roomLock.Lock(number)
-			defer roomLock.Unlock(number)
-			fmt.Printf("routine %v (goRoutine) has locked the room\n", number)
+		control = []string{}
+		controlExp = []string{
+			"0-start",
+			"0-end",
+			"1-start",
+			"1-end",
+			"2-start",
+			"2-end",
+			"3-start",
+			"3-end",
+			"4-start",
+			"4-end",
+			"5-start",
+			"5-end",
+			"6-start",
+			"6-end",
+			"7-start",
+			"7-end",
+			"8-start",
+			"8-end",
+			"9-start",
+			"9-end",
+		}
+		goRoutineImplicit = func(number int) {
+			t := roomLock.WaitIfLocked(nil)
+			roomLock.Lock(t)
+			defer roomLock.Unlock(t)
 
-			start = append(start, number)
-			fmt.Printf("start = %v\n", start)
-			time.Sleep(10 * time.Millisecond)
-			end = append(end, number)
+			control = append(control, fmt.Sprintf("%d-start", number))
+			randTime := time.Duration(rand.Intn(100))
+			time.Sleep(randTime * time.Millisecond)
+			control = append(control, fmt.Sprintf("%d-end", number))
+		}
+		goRoutineExplicit = func(number int) {
+			t := roomLock.DrawNewTicket()
 
-			fmt.Printf("routine %v (goRoutine) is leaving\n", number)
+			// doing some stuff in the mean time - waiting in the queue is boring
+			randTime := time.Duration(rand.Intn(100))
+			time.Sleep(randTime * time.Millisecond)
+
+			roomLock.WaitIfLocked(t)
+			roomLock.Lock(t)
+			defer roomLock.Unlock(t)
+
+			control = append(control, fmt.Sprintf("%d-start", number))
+			randTime = time.Duration(rand.Intn(100))
+			time.Sleep(randTime * time.Millisecond)
+			control = append(control, fmt.Sprintf("%d-end", number))
 		}
 	})
 
 	Describe("Multiple go-routines", func() {
 		Context("with varying runtime", func() {
-			It("should be executed in order", func() {
-				for i := 0; i < 10; i++ {
-					go goRoutine(i)
-					time.Sleep(time.Millisecond)
-				}
+			Context("using implicit Ticket grant", func() {
+				It("should be executed in order", func() {
+					for i := range 10 {
+						go goRoutineImplicit(i)
+						time.Sleep(time.Millisecond) // needed to ensure correct dispatch order
+					}
 
-				roomLock.WaitIfLocked(-1)
+					roomLock.WaitIfLocked(nil)
 
-				Expect(start).To(Equal([]int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}))
-				Expect(end).To(Equal([]int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}))
+					Ω(control).To(Equal(controlExp))
+				})
 			})
+			Context("using explicit Ticket grant", func() {
+				It("should be executed in order", func() {
+					for i := range 10 {
+						go goRoutineExplicit(i)
+						time.Sleep(time.Millisecond) // needed to ensure correct dispatch order
+					}
+
+					roomLock.WaitIfLocked(nil)
+
+					Ω(control).To(Equal(controlExp))
+				})
+			})
+		})
+	})
+	Describe("An outside routine", func() {
+		It("should not be able to unlock a room from the outside", func() {
+			t := roomLock.DrawNewTicket()
+			roomLock.Lock(t)
+
+			t2 := roomLock.DrawNewTicket()
+			err := roomLock.Unlock(t2)
+
+			Ω(roomLock.IsLocked()).To(Equal(true))
+			Ω(err).To(Equal(restroom.ErrAccessDenied))
 		})
 	})
 })
