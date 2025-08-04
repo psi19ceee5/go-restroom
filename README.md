@@ -23,8 +23,8 @@ import "github.com/psi19ceee5/go-restroom/pkg/restroom"
 func myFun(lock *restroom.RoomLock) {
     // ...
     t := lock.WaitIfLocked(nil) // Draw a ticket and queue up if the room is locked
-    lock.Lock(t)             // Once its your turn, lock the room by showing your ticket
-    defer lock.Unlock(t)     // When you're done, don't forget to unlock the room, your ticket is discarded in the process
+    lock.Lock(t)                // Once its your turn, lock the room by showing your ticket
+    defer lock.Unlock(t)        // When you're done, don't forget to unlock the room, your ticket is discarded in the process
     // ...
 }
 
