@@ -5,7 +5,7 @@ name: Go
 
 on:
   push:
-    branches: [ "main", "ci-test" ]
+    branches: [ "*" ]
   pull_request:
     branches: [ "main" ]
 
