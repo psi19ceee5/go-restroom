@@ -3,7 +3,7 @@
 
 # go-restroom
 
-A thread-order preserving access-queue mutex
+A thread-order preserving access-queue mutex.
 
 ## Why do I need a restroom?
 
