@@ -1,4 +1,5 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/psi19ceee5/go-restroom.svg)](https://pkg.go.dev/github.com/psi19ceee5/go-restroom)
+![Coverage](https://img.shields.io/badge/Coverage-95.5%25-brightgreen)
 
 # go-restroom
 
