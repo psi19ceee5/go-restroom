@@ -1,6 +1,9 @@
 package restroom
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 type ticket struct {
 	previous *ticket
@@ -99,6 +102,7 @@ func (lock *RoomLock) WaitIfLocked() {
 	}
 
 	lock.mutex.Unlock()
+	fmt.Println("left the waiting loop")
 }
 
 func (lock *RoomLock) set(val bool) {
