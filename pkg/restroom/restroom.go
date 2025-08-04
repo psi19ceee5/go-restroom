@@ -80,29 +80,39 @@ func NewRoomLock() *RoomLock {
 }
 
 // Lock locks the RoomLock
-func (lock *RoomLock) Lock() {
+func (lock *RoomLock) Lock(number int) {
+	fmt.Printf("routine %v (Lock) is locking the room \n", number)
 	lock.set(true)
 }
 
 // Unlock unlocks the RoomLock
-func (lock *RoomLock) Unlock() {
+func (lock *RoomLock) Unlock(number int) {
+	fmt.Printf("routine %v (Unlock) discards the ticket \n", number)
 	lock.queue.popFront() // trow your ticket in the bin
-	lock.set(false)       // unlock the door
+	fmt.Printf("routine %v (Unlock) unlocks the room \n", number)
+	lock.set(false) // unlock the door
 }
 
 // WaitIfLocked halts the program execution if the RoomLock is locked and does nothing if not
 // it implements the ticket system to grant access to go-routines in the same order in which
 // they called this method
-func (lock *RoomLock) WaitIfLocked() {
+func (lock *RoomLock) WaitIfLocked(number int) {
+	fmt.Printf("routine %v (WaitIfLocked) entered\n", number)
 	lock.mutex.Lock()
+	fmt.Printf("routine %v (WaitIfLocked) is drawing the next ticket\n", number)
 	ticket := lock.queue.getNewTicket()
+	fmt.Printf("routine %v (WaitIfLocked) got a Ticket \n", number)
 
 	for lock.value || lock.queue.activeTicket() != ticket {
+		fmt.Printf("routine %v (WaitIfLocked) is waiting \n", number)
 		lock.cond.Wait() // Wait temporarily releases the mutex until cond.Broadcast or cond.Signal
 	}
 
+	fmt.Printf("routine %v (WaitIfLocked) left the waiting loop \n", number)
+
 	lock.mutex.Unlock()
-	fmt.Println("left the waiting loop")
+
+	fmt.Printf("routine %v (WaitIfLocked) is leaving \n", number)
 }
 
 func (lock *RoomLock) set(val bool) {
