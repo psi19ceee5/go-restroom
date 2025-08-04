@@ -8,7 +8,7 @@ A thread-order preserving access-queue mutex
 ## Why do I need a restroom?
 
 Well, there are certain things you don't want to do in public. Hence, a little privacy may sometimes be appreciated 😉
-Exactly for those purposes we have public restrooms: the first person enters, locks the door from the inside and does what has to be done. In the
+Exactly for those purposes we have public restrooms: a person enters, locks the door from the inside and does what has to be done. In the
 mean time, other people with private needs gather up outside. But they have to wait until the first person has finished, unlocked the door and left the restroom. Only then, the next person can enter and lock the door again. Since we are civilized people we do not fight over the order in which we enter, but build a nicely ordered queue in front of the door. To make things even more convenient, we nowadays deploy ticket systems in many queueing situations. Each person has to draw a ticket with a number and a display showing your number tells you this is your turn.
 
 Now, why taking so much about sanitary rooms? Because this package implements exactly such a mechanic for concurrent go-routines queueing before a critical block of code which
