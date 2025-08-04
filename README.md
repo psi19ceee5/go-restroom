@@ -1,4 +1,3 @@
-
 [![Go Reference](https://pkg.go.dev/badge/github.com/psi19ceee5/go-restroom.svg)](https://pkg.go.dev/github.com/psi19ceee5/go-restroom)
 
 # go-restroom
